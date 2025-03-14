@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXContainerItemProxy section */
@@ -30,21 +30,9 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		63A552DC2D83DA5D005ABBDD /* CICDProject */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = CICDProject;
-			sourceTree = "<group>";
-		};
-		63A552ED2D83DA5E005ABBDD /* CICDProjectTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = CICDProjectTests;
-			sourceTree = "<group>";
-		};
-		63A552F72D83DA5E005ABBDD /* CICDProjectUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = CICDProjectUITests;
-			sourceTree = "<group>";
-		};
+		63A552DC2D83DA5D005ABBDD /* CICDProject */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = CICDProject; sourceTree = "<group>"; };
+		63A552ED2D83DA5E005ABBDD /* CICDProjectTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = CICDProjectTests; sourceTree = "<group>"; };
+		63A552F72D83DA5E005ABBDD /* CICDProjectUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = CICDProjectUITests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -187,6 +175,7 @@
 				};
 			};
 			buildConfigurationList = 63A552D52D83DA5D005ABBDD /* Build configuration list for PBXProject "CICDProject" */;
+			compatibilityVersion = "Xcode 15.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -195,7 +184,6 @@
 			);
 			mainGroup = 63A552D12D83DA5D005ABBDD;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			productRefGroup = 63A552DB2D83DA5D005ABBDD /* Products */;
 			projectDirPath = "";
 			projectRoot = "";

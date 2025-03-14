@@ -1,88 +1,32 @@
-name: iOS Build & Test Workflow
+name: iOS CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   build:
-    name: iOS Build & Test
     runs-on: macos-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Print Current Directory
-        run: pwd && ls -l
+      - name: Set up Xcode
+        run: sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
 
-      - name: Set Xcode Version
-        run: sudo xcode-select -switch /Applications/Xcode_15.3.app/Contents/Developer
+      - name: Run SwiftLint
+        run: swiftlint --strict
 
-      - name: Check Xcode Version
-        run: xcodebuild -version
+      - name: Run SwiftFormat
+        run: swiftformat . --lint
 
-      - name: Set Default Scheme
-        run: echo "DEFAULT_SCHEME=CICDProject" >> $GITHUB_ENV
+      - name: Build project
+        run: xcodebuild -workspace CICDProject.xcworkspace -scheme YourApp -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 14' clean build
 
-      - name: Check for Xcode Project
-        run: ls -l /Users/runner/work/CICDProject/CICDProject
-
-      - name: Build with Xcode Project
-        run: |
-          cd /Users/runner/work/CICDProject/CICDProject
-          xcodebuild build-for-testing \
-          -scheme "CICDProject" \
-          -project "CICDProject.xcodeproj" \
-          -destination "platform=iOS Simulator,name=iPhone 15" \
-          CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty
-
-
-      - name: Run Tests
-        run: |
-          cd /Users/runner/work/CICDProject/CICDProject
-          xcodebuild test-without-building \
-          -scheme "CICDProject" \
-          -project "CICDProject.xcodeproj" \
-          -destination "platform=iOS Simulator,name=iPhone 15" \
-          CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty
-
-
-      - name: Archive App
-        run: |
-          xcodebuild archive \
-            -project "CICDProject.xcodeproj" \  # ✅ Corrected: Using .xcodeproj instead of .xcworkspace
-            -scheme "${{ env.DEFAULT_SCHEME }}" \
-            -archivePath ${{ github.workspace }}/build.xcarchive \
-            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty
-
-      - name: Export .ipa File
-        run: |
-          xcodebuild -exportArchive \
-            -archivePath ${{ github.workspace }}/build.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath ${{ github.workspace }}/output | xcpretty
-
-      # ✅ Upload .ipa File as Artifact
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: iOS-App-Build
-          path: ${{ github.workspace }}/output
-
-  deploy:
-    name: Deploy App
-    runs-on: macos-latest
-    needs: build  # ✅ Ensures "build" job completes before "deploy"
-
-    steps:
-      - name: Download Build Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: iOS-App-Build
-          path: downloaded-output
-
-      - name: List Downloaded Files
-        run: ls -R downloaded-output/
+      - name: Run tests
+        run: xcodebuild test -workspace CICDProject.xcworkspace -scheme YourApp -destination 'platform=iOS Simulator,name=iPhone 14'

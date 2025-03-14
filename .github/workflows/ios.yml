@@ -1,4 +1,4 @@
-name: iOS starter workflow
+name: iOS CI/CD Workflow
 
 on:
   push:
@@ -8,37 +8,67 @@ on:
 
 jobs:
   build:
-    name: Build and Test default scheme using any available iPhone simulator
-    runs-on: macos-latest
+    name: Build and Test iOS App
+    runs-on: macos-14  # Ensures compatibility with Xcode 15.3+
 
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Set Xcode Version
+        run: sudo xcode-select -switch /Applications/Xcode_15.3.app/Contents/Developer
+
       - name: Set Default Scheme
         run: |
-          scheme_list=$(xcodebuild -list -json | tr -d "\n")
-          default=$(echo $scheme_list | ruby -e "require 'json'; puts JSON.parse(STDIN.gets)['project']['targets'][15.6]")
-          echo $default | cat >default
-          echo Using default scheme: $default
-      - name: Build
-        env:
-          scheme: ${{ 'default' }}
-          platform: ${{ 'iOS Simulator' }}
+          scheme_list=$(xcodebuild -list -json 2>/dev/null || echo '{}')
+          if [ -z "$scheme_list" ] || [ "$scheme_list" = "{}" ]; then
+            echo "Error: No schemes found. Check Xcode version or project settings."
+            exit 1
+          fi
+          default=$(echo "$scheme_list" | ruby -r json -e '
+            data = JSON.parse(STDIN.read)
+            puts data.dig("project", "targets", 0) || "Unknown"
+          ')
+          if [ "$default" = "Unknown" ]; then
+            echo "Error: Failed to parse scheme list."
+            exit 1
+          fi
+          echo "$default" > default
+          echo "Using default scheme: $default"
+
+      - name: Select iOS Simulator
+        id: select_simulator
         run: |
-          # xcrun xctrace returns via stderr, not the expected stdout (see https://developer.apple.com/forums/thread/663959)
-          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}' | sed -e "s/ Simulator$//"`
-          if [ $scheme = default ]; then scheme=$(cat default); fi
-          if [ "`ls -A | grep -i \\.xcworkspace\$`" ]; then filetype_parameter="workspace" && file_to_build="`ls -A | grep -i \\.xcworkspace\$`"; else filetype_parameter="project" && file_to_build="`ls -A | grep -i \\.xcodeproj\$`"; fi
-          file_to_build=`echo $file_to_build | awk '{$1=$1;print}'`
-          xcodebuild build-for-testing -scheme "$scheme" -"$filetype_parameter" "$file_to_build" -destination "platform=$platform,name=$device"
-      - name: Test
-        env:
-          scheme: ${{ 'default' }}
-          platform: ${{ 'iOS Simulator' }}
+          device=$(xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}' | sed -e "s/ Simulator$//")
+          echo "SIMULATOR_NAME=$device" >> $GITHUB_ENV
+          echo "Selected iOS Simulator: $device"
+
+      - name: Determine Xcode Project Type
+        id: project_type
         run: |
-          # xcrun xctrace returns via stderr, not the expected stdout (see https://developer.apple.com/forums/thread/663959)
-          device=`xcrun xctrace list devices 2>&1 | grep -oE 'iPhone.*?[^\(]+' | head -1 | awk '{$1=$1;print}' | sed -e "s/ Simulator$//"`
-          if [ $scheme = default ]; then scheme=$(cat default); fi
-          if [ "`ls -A | grep -i \\.xcworkspace\$`" ]; then filetype_parameter="workspace" && file_to_build="`ls -A | grep -i \\.xcworkspace\$`"; else filetype_parameter="project" && file_to_build="`ls -A | grep -i \\.xcodeproj\$`"; fi
-          file_to_build=`echo $file_to_build | awk '{$1=$1;print}'`
-          xcodebuild test-without-building -scheme "$scheme" -"$filetype_parameter" "$file_to_build" -destination "platform=$platform,name=$device"
+          if [ -n "$(ls -A | grep -i \\.xcworkspace\$)" ]; then
+            echo "PROJECT_TYPE=workspace" >> $GITHUB_ENV
+            echo "PROJECT_FILE=$(ls -A | grep -i \\.xcworkspace\$)" >> $GITHUB_ENV
+          else
+            echo "PROJECT_TYPE=project" >> $GITHUB_ENV
+            echo "PROJECT_FILE=$(ls -A | grep -i \\.xcodeproj\$)" >> $GITHUB_ENV
+          fi
+          echo "Using Project Type: ${{ env.PROJECT_TYPE }}"
+
+      - name: Build App for Testing
+        run: |
+          scheme=$(cat default)
+          xcodebuild build-for-testing \
+            -scheme "$scheme" \
+            -${{ env.PROJECT_TYPE }} "${{ env.PROJECT_FILE }}" \
+            -destination "platform=iOS Simulator,name=${{ env.SIMULATOR_NAME }}" \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty
+
+      - name: Run Tests
+        run: |
+          scheme=$(cat default)
+          xcodebuild test-without-building \
+            -scheme "$scheme" \
+            -${{ env.PROJECT_TYPE }} "${{ env.PROJECT_FILE }}" \
+            -destination "platform=iOS Simulator,name=${{ env.SIMULATOR_NAME }}" \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty

@@ -1,28 +1,28 @@
-name: iOS Build & Test Workflow
+name: iOS Build and Upload
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   build:
-    name: iOS Build & Test
     runs-on: macos-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set Xcode Version
-        run: sudo xcode-select -switch /Applications/Xcode_15.3.app/Contents/Developer
+      - name: Clean Derived Data
+        run: rm -rf ~/Library/Developer/Xcode/DerivedData
 
-      - name: Check Xcode Version
-        run: xcodebuild -version
+      - name: Debug Project Structure
+        run: ls -R
 
-      - name: Set Default Scheme
-        run: echo "DEFAULT_SCHEME=CICDProject" >> $GITHUB_ENV
+      - name: Select Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: List Xcode Schemes
+        run: xcodebuild -list
 
       - name: Build and Archive IPA (iPhone)
         run: |
@@ -31,7 +31,9 @@ jobs:
             -project "CICDProject.xcodeproj" \
             -archivePath build/App.xcarchive \
             -sdk iphoneos \
-            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO
 
           xcodebuild -exportArchive \
             -archivePath build/App.xcarchive \

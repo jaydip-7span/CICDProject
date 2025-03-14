@@ -29,29 +29,7 @@ jobs:
             exit 1
           fi
 
-      - name: Set Default Scheme
-      run: |
-    scheme_list=$(xcodebuild -list -json 2>/dev/null || echo '{}')
-    echo "Raw Scheme List: $scheme_list"  # Debugging
-    if [ -z "$scheme_list" ] || [ "$scheme_list" = "{}" ]; then
-      echo "Error: No schemes found. Ensure your project has shared schemes."
-      exit 1
-    fi
-    default=$(echo "$scheme_list" | ruby -r json -e '
-      begin
-        data = JSON.parse(STDIN.read)
-        puts data.dig("project", "targets", 0) || "Unknown"
-      rescue JSON::ParserError
-        puts "Unknown"
-      end
-    ')
-    if [ "$default" = "Unknown" ]; then
-      echo "Error: Failed to parse scheme list."
-      exit 1
-    fi
-    echo "$default" > default
-    echo "Using default scheme: $default"
-
+    
 
       - name: Select iOS Simulator
         id: select_simulator

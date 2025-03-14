@@ -24,36 +24,21 @@ jobs:
       - name: List Files (Debugging)
         run: ls -la
 
-      - name: Select Default Scheme
-        run: |
-          scheme_list=$(xcodebuild -list -json 2>/dev/null || echo '{}')
-          if [ -z "$scheme_list" ] || [ "$scheme_list" = "{}" ]; then
-            echo "Error: No schemes found. Check Xcode version or project settings."
-            exit 1
-          fi
-          default=$(echo "$scheme_list" | ruby -r json -e '
-            data = JSON.parse(STDIN.read)
-            puts data.dig("project", "targets", 0) || "Unknown"
-          ')
-          if [ "$default" = "Unknown" ]; then
-            echo "Error: Failed to parse scheme list."
-            exit 1
-          fi
-          echo "$default" > default
-          echo "Using default scheme: $default"
+       - name: Set Default Scheme
+        run: echo "DEFAULT_SCHEME=CICDProject" >> $GITHUB_ENV
 
       - name: Build App
         run: |
           xcodebuild build-for-testing \
-            -scheme "CICDProject" \
-            -project "CICDProject.xcworkspace" \
+            -scheme "${{ env.DEFAULT_SCHEME }}" \
+            -workspace "CICDProject.xcworkspace" \
             -destination "platform=iOS Simulator,name=iPhone 15" \
             CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty
 
       - name: Run Tests
         run: |
           xcodebuild test-without-building \
-            -scheme "CICDProject" \
-            -project "CICDProject.xcodeproj" \
+            -scheme "${{ env.DEFAULT_SCHEME }}" \
+            -workspace "CICDProject.xcworkspace" \
             -destination "platform=iOS Simulator,name=iPhone 15" \
             CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty

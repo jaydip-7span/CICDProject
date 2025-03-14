@@ -41,10 +41,8 @@ jobs:
             -enableCodeCoverage YES  \
             CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty
 
-      - name: Export IPA
-        run: |
-          xcodebuild -exportArchive \
-            -archivePath build/App.xcarchive \
-            -exportPath build/ \
-            -exportOptionsPlist ExportOptions.plist \
-            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: iOS-App
+          path: build/

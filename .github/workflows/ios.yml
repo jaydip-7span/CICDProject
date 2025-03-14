@@ -19,11 +19,20 @@ jobs:
       - name: Set up Xcode
         run: sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
 
+      - name: Verify Podfile
+        run: ls -la
+
+      - name: Create Podfile if missing
+        run: |
+          if [ ! -f Podfile ]; then
+            pod init
+          fi
+          pod install --repo-update
+
       - name: Install dependencies
         run: |
           brew update
           brew install swiftformat swiftlint
-          pod install --repo-update
 
       - name: Run SwiftLint
         run: |
@@ -32,6 +41,9 @@ jobs:
 
       - name: Run SwiftFormat
         run: swiftformat . --lint
+
+      - name: Verify Workspace
+        run: ls -la
 
       - name: Build project
         run: xcodebuild -workspace YourApp.xcworkspace -scheme YourApp -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 14' clean build

@@ -1,54 +1,43 @@
-name: iOS Build and Upload
+name: iOS Build & Test Workflow
 
 on:
   push:
-    branches:
-      - main
-
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
+    name: iOS Build & Test
     runs-on: macos-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Select Latest Xcode
-        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+      - name: Set Xcode Version
+        run: sudo xcode-select -switch /Applications/Xcode_15.3.app/Contents/Developer
 
-      - name: List Installed Xcode Versions
-        run: ls /Applications | grep Xcode
+      - name: Check Xcode Version
+        run: xcodebuild -version
 
-      - name: Clean Derived Data
-        run: rm -rf ~/Library/Developer/Xcode/DerivedData
+      - name: Set Default Scheme
+        run: echo "DEFAULT_SCHEME=CICDProject" >> $GITHUB_ENV
 
-      - name: Debug Project Structure
-        run: ls -R
-
-      - name: List Xcode Schemes
-        run: xcodebuild -list || echo "Failed to list schemes, check Xcode version"
-
-      - name: Build and Archive IPA (iPhone)
+      - name: Build App
         run: |
-          xcodebuild archive \
-            -scheme "CICDProject" \
-            -project "CICDProject.xcodeproj" \
-            -archivePath build/App.xcarchive \
-            -sdk iphoneos \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO
+          xcodebuild build-for-testing \
+            -scheme "${{ env.DEFAULT_SCHEME }}" \
+            -workspace "CICDProject.xcworkspace" \
+            -destination "platform=iOS Simulator,name=iPhone 15" \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty
 
-          xcodebuild -exportArchive \
-            -archivePath build/App.xcarchive \
-            -exportPath build/Release-iphoneos/ \
-            -exportOptionsPlist ExportOptions.plist
+      - name: Run Tests
+        run: |
+          xcodebuild test-without-building \
+            -scheme "${{ env.DEFAULT_SCHEME }}" \
+            -workspace "CICDProject.xcworkspace" \
+            -destination "platform=iOS Simulator,name=iPhone 15" \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty
 
-      - name: Debug Build Folder
-        run: ls -la build/
 
-      - name: Upload IPA (iPhone)
-        uses: actions/upload-artifact@v4
-        with:
-          name: iOS-App
-          path: build/Release-iphoneos/

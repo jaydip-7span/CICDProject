@@ -12,17 +12,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Select Latest Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: List Installed Xcode Versions
+        run: ls /Applications | grep Xcode
+
       - name: Clean Derived Data
         run: rm -rf ~/Library/Developer/Xcode/DerivedData
 
       - name: Debug Project Structure
         run: ls -R
 
-      - name: Select Xcode Version
-        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-
       - name: List Xcode Schemes
-        run: xcodebuild -list
+        run: xcodebuild -list || echo "Failed to list schemes, check Xcode version"
 
       - name: Build and Archive IPA (iPhone)
         run: |

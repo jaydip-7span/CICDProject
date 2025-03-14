@@ -31,6 +31,7 @@ jobs:
             -workspace "CICDProject.xcworkspace" \
             -destination "platform=iOS Simulator,name=iPhone 15" \
             CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty
+            
       - name: Run Tests with Code Coverage
         run: |
           xcodebuild test-without-building \
@@ -39,3 +40,11 @@ jobs:
             -destination "platform=iOS Simulator,name=iPhone 15" \
             -enableCodeCoverage YES  \
             CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty
+
+      - name: Export IPA
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/App.xcarchive \
+            -exportPath build/ \
+            -exportOptionsPlist ExportOptions.plist \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO

@@ -56,8 +56,9 @@ jobs:
             -exportOptionsPlist ExportOptions.plist \
             -exportPath ${{ github.workspace }}/output | xcpretty
 
-      - name: Upload .ipa as Artifact
-        uses: actions/upload-artifact@v4
+     - name: Upload IPA
+        uses: actions/upload-artifact@v3
         with:
-          name: iOS-App
-          path: ${{ github.workspace }}/output/*.ipa
+        name: build-artifact
+        path: /Users/runner/work/CICDProject/CICDProject/output/*.ipa
+

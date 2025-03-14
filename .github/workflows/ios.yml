@@ -45,9 +45,10 @@ jobs:
           cd /Users/runner/work/CICDProject/CICDProject
           xcodebuild test-without-building \
           -scheme "CICDProject" \
-          -project "CICDProject.xcodeproj" \   # ✅ Corrected: Using .xcodeproj instead of .xcworkspace
+          -project "CICDProject.xcodeproj" \
           -destination "platform=iOS Simulator,name=iPhone 15" \
           CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty
+
 
       - name: Archive App
         run: |

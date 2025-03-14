@@ -42,8 +42,11 @@ jobs:
             -enableCodeCoverage YES  \
             CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty
 
-      - name: Upload IPA
+      - name: Debug Build Folder
+        run: ls -la build/
+
+      - name: Upload IPA (iPhone)
         uses: actions/upload-artifact@v4
         with:
           name: iOS-App
-          path: build/
+          path: build/Release-iphoneos/

@@ -24,9 +24,7 @@ jobs:
       - name: Set Default Scheme
         run: echo "DEFAULT_SCHEME=CICDProject" >> $GITHUB_ENV
 
-      - name: Install Dependencies (CocoaPods)
-        run: pod install --project-directory=CICDProject
-
+  
       - name: Build App for Testing
         run: |
           xcodebuild build-for-testing \

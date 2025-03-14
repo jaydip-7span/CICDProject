@@ -1,70 +1,40 @@
-name: iOS Build & Test Workflow
-
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
 jobs:
   build:
-    name: iOS Build & Test
     runs-on: macos-latest
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+    
+    - name: Checkout Code
+       uses: actions/checkout@v4
 
-      - name: Set Xcode Version
-        run: sudo xcode-select -switch /Applications/Xcode_15.3.app/Contents/Developer
+    - name: Select Xcode Version
+       run: sudo xcode-select -switch /Applications/Xcode_15.3.app/Contents/Developer
 
-      - name: Check Xcode Version
-        run: xcodebuild -version
+    - name: Show Xcode Schemes
+        run: xcodebuild -list
 
-      - name: Set Default Scheme
-        run: echo "DEFAULT_SCHEME=CICDProject" >> $GITHUB_ENV
+    - name: Clean Derived Data
+        run: rm -rf ~/Library/Developer/Xcode/DerivedData
 
-      - name: Build App
+    - name: Archive & Export IPA
         run: |
-          xcodebuild build-for-testing \
-            -scheme "${{ env.DEFAULT_SCHEME }}" \
-            -workspace "CICDProject.xcworkspace" \
-            -destination "platform=iOS Simulator,name=iPhone 15" \
-            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty
-
-      - name: Run Tests with Code Coverage
-        run: |
-          xcodebuild test-without-building \
-            -scheme "${{ env.DEFAULT_SCHEME }}" \
-            -workspace "CICDProject.xcworkspace" \
-            -destination "platform=iOS Simulator,name=iPhone 15" \
-            -enableCodeCoverage YES  \
-            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty
-
-      - name: Archive & Export IPA
-        run: |
-          xcodebuild archive \
+          xcodebuild clean archive \
             -scheme "CICDProject" \
             -project "CICDProject.xcodeproj" \
             -archivePath build/App.xcarchive \
+            -sdk iphoneos \
+            -configuration Release \
             CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
 
+    - name: Export IPA
+        run: |
           xcodebuild -exportArchive \
             -archivePath build/App.xcarchive \
             -exportPath build/ \
-            -exportOptionsPlist ExportOptions.plist
+            -exportOptionsPlist ExportOptions.plist \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
 
-
-      - name: Upload Build Artifact
+    - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: iOS-App
           path: build/
-
-
-
-
-
-
-
-

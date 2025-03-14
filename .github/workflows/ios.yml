@@ -19,14 +19,22 @@ jobs:
       - name: Set up Xcode
         run: sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
 
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install swiftformat swiftlint
+          pod install --repo-update
+
       - name: Run SwiftLint
-        run: swiftlint --strict
+        run: |
+          export PATH="/opt/homebrew/bin:$PATH"
+          swiftlint --strict
 
       - name: Run SwiftFormat
         run: swiftformat . --lint
 
       - name: Build project
-        run: xcodebuild -workspace CICDProject.xcworkspace -scheme YourApp -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 14' clean build
+        run: xcodebuild -workspace YourApp.xcworkspace -scheme YourApp -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 14' clean build
 
       - name: Run tests
-        run: xcodebuild test -workspace CICDProject.xcworkspace -scheme YourApp -destination 'platform=iOS Simulator,name=iPhone 14'
+        run: xcodebuild test -workspace YourApp.xcworkspace -scheme YourApp -destination 'platform=iOS Simulator,name=iPhone 14'

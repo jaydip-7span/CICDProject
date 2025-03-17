@@ -16,6 +16,7 @@ struct ContentView: View {
                 .fontWeight(.medium)
             
             Text("Hello, world!")
+            Text("Hello, world!1")
         }
         .padding()
     }

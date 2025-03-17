@@ -15,8 +15,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set Xcode Version
-        run: sudo xcode-select -switch /Applications/Xcode_15.3.app/Contents/Developer
+    
 
       - name: Check Xcode Version
         run: xcodebuild -version

@@ -30,7 +30,7 @@ jobs:
             -scheme "${{ env.DEFAULT_SCHEME }}" \
             -workspace "CICDProject.xcworkspace" \
             -destination "platform=iOS Simulator,name=iPhone 15" \
-            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO | xcpretty.....
 
       - name: Run Tests
         run: |
